@@ -1,13 +1,35 @@
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
+const mongoose = require('mongoose');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+const session = require('express-session');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+const PORT = 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ====== เชื่อม MongoDB ======
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error(err));
+
+// ====== start server ======
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+app.use(session({
+  secret: 'ProjectCOOP', 
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 60 } // 1 ชั่วโมง
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

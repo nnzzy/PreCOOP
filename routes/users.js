@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
+const { isUser } = require('../middleware/auth');
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+
+router.get('/', isUser, (req, res) => {
+   res.render('users/userDashboard', { title: 'User Dashboard' });
 });
 
 module.exports = router;

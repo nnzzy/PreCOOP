@@ -6,16 +6,16 @@ const { redirectIfAuthenticated, isAuthenticated, isAdmin, isUser } = require('.
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Express' , layout: false});
 });
 
 // แสดงหน้า register
 router.get('/register', redirectIfAuthenticated, (req, res) => {
-  res.render('register');
+  res.render('register' , { layout: false });
 });
 
 router.get('/login', redirectIfAuthenticated, (req, res) => {
-  res.render('login');
+  res.render('login' , { layout: false });
 });
 
 
@@ -41,7 +41,8 @@ router.post('/register', async (req, res) => {
       fname,
       lname,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      userRole: 'user'
     });
 
     await newUser.save();
@@ -77,28 +78,36 @@ router.post('/login', async (req, res) => {
 
     if (!user) {
       return res.render('login', {
+        layout: false,
         alert: {
           type: 'error',
-          title: 'เข้าสู่ระบบไม่สำเร็จ',
+          title: 'เข้าสู่ระบบไม่สําเร็จ',
           message: 'ไม่พบบัญชีผู้ใช้นี้ในระบบ'
         }
       });
     }
 
+    // ตรวจสอบรหัสผ่านก่อน
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.render('login', {
+        layout: false,
         alert: {
           type: 'error',
-          title: 'เข้าสู่ระบบไม่สำเร็จ',
+          title: 'เข้าสู่ระบบไม่สําเร็จ',
           message: 'รหัสผ่านไม่ถูกต้อง'
         }
       });
     }
 
-    req.session.userId = user.id;
-    req.session.userRole = user.userRole;
+    // เก็บข้อมูลใน session
+    req.session.user = {
+      id: user._id,
+      role: user.userRole,
+      fname: user.fname
+    };
 
+    // Redirect ตาม role
     let redirectUrl = '/';
     if (user.userRole === 'admin') {
       redirectUrl = '/admin';
@@ -107,9 +116,10 @@ router.post('/login', async (req, res) => {
     }
 
     res.render('login', {
+      layout: false,
       alert: {
         type: 'success',
-        title: 'เข้าสู่ระบบสำเร็จ!',
+        title: 'เข้าสู่ระบบสําเร็จ!',
         message: `ยินดีต้อนรับคุณ ${user.fname}`,
         redirect: redirectUrl 
       }
@@ -118,6 +128,7 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.render('login', {
+      layout: false,
       alert: {
         type: 'error',
         title: 'เกิดข้อผิดพลาด',
@@ -125,15 +136,6 @@ router.post('/login', async (req, res) => {
       }
     });
   }
-});
-
-
-router.get('/users',isUser,(req,res) => {
-  res.render('users/userDashboard', { name: 'User Dashboard' });
-});
-
-router.get('/admin', isAdmin, (req, res) => {
-  res.render('admin/adminDashboard', { name: 'Admin Dashboard' });
 });
 
 router.get('/logout', (req, res) => {

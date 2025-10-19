@@ -9,16 +9,19 @@ const session = require('express-session');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+const dbName = 'projectcoop_db';
+const localMongoURI = 'mongodb://localhost:27017/ProjectCOOP'
+const expressLayouts = require('express-ejs-layouts');
+
 var app = express();
 const PORT = 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ====== เชื่อม MongoDB ======
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
+mongoose.connect(localMongoURI)
+  .then(() => console.log(`MongoDB connected to local database: ${dbName}`))
   .catch(err => console.error(err));
-
 // ====== start server ======
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

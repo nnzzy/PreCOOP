@@ -149,19 +149,25 @@
 
   <ul class="sidebar-menu">
     <li>
-      <a href="#" class="active">
+      <a href="/admin" class="<%= (typeof title !== 'undefined' && title === 'Admin Dashboard') ? 'active' : '' %>">
         <i class="bi bi-speedometer2"></i>
         <span>แดชบอร์ด</span>
       </a>
     </li>
     <li>
-      <a href="#">
+       <a href="/admin/equipmentAdmin" class="<%= (typeof title !== 'undefined' && title === 'Equipment Admin') ? 'active' : '' %>">
         <i class="bi bi-tools"></i>
         <span>อุปกรณ์ทั้งหมดในคณะ</span>
       </a>
     </li>
     <li>
-      <a href="#">
+      <a href="/admin/adminManageBorrow" class="<%= (typeof title !== 'undefined' && title === 'Manage Borrow') ? 'active' : '' %>">
+        <i class="bi bi-check-circle"></i>
+        <span>ยืนยันการยืมอุปกรณ์</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/confirmReturn " class="<%= (typeof title !== 'undefined' && title === 'confirmReturn') ? 'active' : '' %>">
         <i class="bi bi-repeat-1"></i>
         <span>ยืนยันการคืนอุปกรณ์</span>
       </a>
@@ -184,7 +190,7 @@
   <div class="sidebar-footer">
     <button class="logout-btn" onclick="window.location.href='/logout'">
       <i class="bi bi-box-arrow-right"></i>
-      <span>Logout</span>
+      <span>ออกจากระบบ</span>
     </button>
   </div>
 </div>

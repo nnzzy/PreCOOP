@@ -24,6 +24,8 @@ app.set('layout', 'layout/mainlayout');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+app.use('/uploads', express.static('public/uploads'));
+
 
 // ====== เชื่อม MongoDB ======
 mongoose.connect(localMongoURI)

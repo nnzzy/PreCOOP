@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Project CO-OP' %></title>
+</head>
+<style>
+  .return-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .return-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .return-card {
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .return-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .return-header-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem;
+    color: white;
+  }
+
+  .return-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .user-info h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .user-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    opacity: 0.9;
+  }
+
+  .return-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .equipment-info-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .equipment-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .equipment-name i {
+    color: #667eea;
+  }
+
+  .info-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .info-item i {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.125rem;
+  }
+
+  .info-value {
+    font-size: 0.95rem;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .status-badge-large {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .status-wait {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffc107;
+  }
+
+  .status-borrowed {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #28a745;
+  }
+
+  .status-pending-return {
+    background: #cfe2ff;
+    color: #084298;
+    border: 2px solid #0d6efd;
+  }
+
+  .status-returned {
+    background: #e2e3e5;
+    color: #383d41;
+    border: 2px solid #6c757d;
+  }
+
+  .return-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .return-actions .btn {
+    flex: 1;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.warning {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .stat-icon.success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .stat-icon.info {
+    background: #cfe2ff;
+    color: #084298;
+  }
+
+  .stat-icon.secondary {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+
+  .stat-content h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .stat-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+</style>
+<body>
+    <div class="return-header">
+  <div>
+    <h1 class="page-title mb-2">ยืนยันการคืนอุปกรณ์</h1>
+    <p class="text-muted">ตรวจสอบและอนุมัติการคืนอุปกรณ์</p>
+  </div>
+</div>
+
+<% if (locals.alert) { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: '<%= alert.type %>',
+        title: '<%= alert.title %>',
+        text: '<%= alert.message %>',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '<%= alert.type === "error" ? "#dc3545" : "#667eea" %>'
+      });
+    });
+  </script>
+<% } %>
+
+<!-- สถิติ -->
+<% 
+  let waitCount = 0;
+  let borrowedCount = 0;
+  let pendingReturnCount = 0;
+  let returnedCount = 0;
+  
+  if (borrows && borrows.length > 0) {
+    borrows.forEach(b => {
+      if (b.status === 'waitForRent') waitCount++;
+      else if (b.status === 'Borrowed') borrowedCount++;
+      else if (b.status === 'PendingReturn') pendingReturnCount++;
+      else if (b.status === 'Returned') returnedCount++;
+    });
+  }
+%>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon info">
+      <i class="bi bi-arrow-repeat"></i>
+    </div>
+    <div class="stat-content">
+      <h3><%= pendingReturnCount %></h3>
+      <p>รออนุมัติการคืน</p>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon secondary">
+      <i class="bi bi-check-circle"></i>
+    </div>
+    <div class="stat-content">
+      <h3><%= returnedCount %></h3>
+      <p>คืนแล้ว</p>
+    </div>
+  </div>
+</div>
+
+<% if (!borrows || borrows.length === 0) { %>
+  <div class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h3>ยังไม่มีรายการ</h3>
+    <p>เมื่อมีผู้ใช้ยืมอุปกรณ์ รายการจะแสดงที่นี่</p>
+  </div>
+<% } else { %>
+  <div class="return-grid">
+    <% borrows.forEach(b => { %>
+      <div class="return-card" id="card-<%= b._id %>">
+        <div class="return-header-section">
+          <div class="return-user">
+            <div class="user-avatar">
+              <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="user-info">
+              <h4><%= b.user_id ? (b.user_id.fname + ' ' + b.user_id.lname) : 'ไม่ทราบชื่อ' %></h4>
+              <p><%= b.user_id ? b.user_id.email : '-' %></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="return-body">
+          <div class="equipment-info-section">
+            <div class="equipment-name">
+              <i class="bi bi-box-seam"></i>
+              <span><%= b.equipment_id ? b.equipment_id.name : 'อุปกรณ์ถูกลบ' %></span>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <i class="bi bi-calendar3"></i>
+                <div class="info-content">
+                  <div class="info-label">วันที่ยืม</div>
+                  <div class="info-value">
+                    <%= b.created_at ? new Date(b.created_at).toLocaleDateString('th-TH', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : '-' %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="bi bi-calendar-check"></i>
+                <div class="info-content">
+                  <div class="info-label">วันที่ต้องคืน</div>
+                  <div class="info-value">
+                    <%= b.return_date ? new Date(b.return_date).toLocaleDateString('th-TH', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : '-' %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-badge-large status-cell 
+            <%= b.status === 'waitForRent' ? 'status-wait' : 
+                (b.status === 'Borrowed' ? 'status-borrowed' : 
+                (b.status === 'PendingReturn' ? 'status-pending-return' : 'status-returned')) %>">
+            <% if (b.status === 'waitForRent') { %>
+              <i class="bi bi-hourglass-split"></i>
+              <span>รออนุมัติการยืม</span>
+            <% } else if (b.status === 'Borrowed') { %>
+              <i class="bi bi-box-seam"></i>
+              <span>กำลังยืม</span>
+            <% } else if (b.status === 'PendingReturn') { %>
+              <i class="bi bi-arrow-repeat"></i>
+              <span>รออนุมัติการคืน</span>
+            <% } else if (b.status === 'Returned') { %>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>คืนแล้ว</span>
+            <% } else { %>
+              <i class="bi bi-info-circle"></i>
+              <span><%= b.status %></span>
+            <% } %>
+          </div>
+
+          <div class="return-actions">
+            <% if (b.status === 'PendingReturn') { %>
+              <button class="btn btn-success confirm-btn" data-id="<%= b._id %>">
+                <i class="bi bi-check-circle me-1"></i>ยืนยันการคืน
+              </button>
+            <% } else if (b.status === 'Returned') { %>
+              <button class="btn btn-secondary" disabled>
+                <i class="bi bi-check-circle me-1"></i>คืนแล้ว
+              </button>
+            <% } else { %>
+              <button class="btn btn-outline-secondary" disabled>
+                <i class="bi bi-clock me-1"></i>รอการดำเนินการ
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.querySelectorAll('.confirm-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.id;
+
+    const confirm = await Swal.fire({
+      title: 'ยืนยันการคืนอุปกรณ์?',
+      text: 'ยืนยันว่าผู้ใช้ได้คืนอุปกรณ์เรียบร้อยแล้ว',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'ใช่, ยืนยัน',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+      
+      const res = await fetch(`/admin/confirmReturn/approve/${id}`, { method: 'POST' });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        await Swal.fire({ 
+          icon: 'success', 
+          title: 'ยืนยันการคืนเรียบร้อย!', 
+          text: 'อุปกรณ์พร้อมให้ยืมอีกครั้ง',
+          confirmButtonColor: '#667eea',
+          timer: 2000,
+          timerProgressBar: true
+        });
+
+        // อัปเดต Card
+        const card = document.getElementById('card-' + id);
+        if (card) {
+          const statusCell = card.querySelector('.status-cell');
+          statusCell.className = 'status-badge-large status-cell status-returned';
+          statusCell.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>คืนแล้ว</span>';
+          
+          const actionDiv = card.querySelector('.return-actions');
+          actionDiv.innerHTML = '<button class="btn btn-secondary" disabled><i class="bi bi-check-circle me-1"></i>คืนแล้ว</button>';
+        }
+
+        // อัปเดตสถิติ
+        setTimeout(() => location.reload(), 2000);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'ผิดพลาด',
+          text: data.message || 'ไม่สามารถยืนยันได้',
+          confirmButtonColor: '#dc3545'
+        });
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>ยืนยันการคืน';
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'ผิดพลาด',
+        text: 'เกิดข้อผิดพลาดขณะยืนยัน',
+        confirmButtonColor: '#dc3545'
+      });
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>ยืนยันการคืน';
+    }
+  });
+});
+</script>
+</body>
+</html>

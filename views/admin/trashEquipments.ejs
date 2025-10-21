@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<style>
+  .trash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .equipment-card {
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .equipment-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  }
+
+  .equipment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .equipment-image-container {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    filter: grayscale(50%);
+  }
+
+  .equipment-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .equipment-image-container .no-image {
+    color: white;
+    font-size: 3rem;
+  }
+
+  .deleted-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .equipment-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .equipment-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .equipment-category {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .equipment-info {
+    margin-bottom: 1rem;
+    flex: 1;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .info-row i {
+    width: 20px;
+    margin-right: 0.5rem;
+  }
+
+  .equipment-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .equipment-actions .btn {
+    flex: 1;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .btn-empty-trash {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+  }
+
+  .btn-empty-trash:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  }
+</style>
+<body>
+  <div class="trash-header">
+    <div>
+      <h1 class="page-title mb-2">
+        <i class="bi bi-trash me-2"></i>ถังขยะ - อุปกรณ์
+      </h1>
+      <p class="text-muted">รายการอุปกรณ์ที่ถูกลบ</p>
+        <a href="/admin/equipmentAdmin" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>กลับไปหน้าอุปกรณ์
+        </a>
+    </div>
+    <div class="d-flex gap-2">
+      <% if (equipments && equipments.length > 0) { %>
+        <button type="button" class="btn btn-danger btn-empty-trash" id="emptyTrashBtn">
+          <i class="bi bi-trash3 me-2"></i>ล้างถังขยะทั้งหมด
+        </button>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (equipments && equipments.length > 0) { %>
+    <div class="equipment-grid">
+      <% equipments.forEach(equipment => { %>
+        <div class="equipment-card">
+          <div class="equipment-image-container">
+            <% if (equipment.image) { %>
+              <img src="<%= equipment.image %>" alt="<%= equipment.name %>">
+            <% } else { %>
+              <div class="no-image">
+                <i class="bi bi-image"></i>
+              </div>
+            <% } %>
+            <div class="deleted-badge">
+              <i class="bi bi-trash-fill me-1"></i>ถูกลบ
+            </div>
+          </div>
+          
+          <div class="equipment-body">
+            <h3 class="equipment-name"><%= equipment.name %></h3>
+            
+            <span class="equipment-category">
+              <i class="bi bi-tag-fill me-1"></i>
+              <%= equipment.category_id ? equipment.category_id.name : 'ไม่ระบุ' %>
+            </span>
+
+            <div class="equipment-info">
+              <div class="info-row">
+                <i class="bi bi-calendar-x text-danger"></i>
+                <span>ลบเมื่อ: <%= new Date(equipment.deleted_at).toLocaleDateString('th-TH', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) %></span>
+              </div>
+              
+              <% if (equipment.location) { %>
+                <div class="info-row">
+                  <i class="bi bi-geo-alt-fill"></i>
+                  <span><%= equipment.location %></span>
+                </div>
+              <% } %>
+              
+              <% if (equipment.description) { %>
+                <div class="equipment-description mt-2">
+                  <%= equipment.description.substring(0, 80) %><%= equipment.description.length > 80 ? '...' : '' %>
+                </div>
+              <% } %>
+            </div>
+
+            <div class="equipment-actions">
+              <form action="/admin/trash/equipments/restore/<%= equipment._id %>" method="POST" style="flex: 1;">
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>กู้คืน
+                </button>
+              </form>
+              <button type="button" class="btn btn-danger btn-sm permanent-delete-btn" 
+                      data-id="<%= equipment._id %>" 
+                      data-name="<%= equipment.name %>"
+                      style="flex: 1;">
+                <i class="bi bi-trash-fill me-1"></i>ลบถาวร
+              </button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <i class="bi bi-trash"></i>
+      <h3>ถังขยะว่างเปล่า</h3>
+      <p class="text-muted">ไม่มีอุปกรณ์ในถังขยะ</p>
+    </div>
+  <% } %>
+
+  <!-- Form สำหรับลบถาวร (ซ่อนไว้) -->
+  <form id="permanentDeleteForm" action="" method="POST" style="display: none;"></form>
+  <form id="emptyTrashForm" action="/admin/trash/equipments/empty" method="POST" style="display: none;"></form>
+
+  <script>
+    // SweetAlert for Success/Error Messages
+    <% if (locals.query) { %>
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const error = urlParams.get('error');
+
+        if (success === 'restore') {
+          Swal.fire({
+            icon: 'success',
+            title: 'กู้คืนสำเร็จ!',
+            text: 'กู้คืนอุปกรณ์เรียบร้อยแล้ว',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#28a745',
+            timer: 3000,
+            timerProgressBar: true
+          });
+        } else if (success === 'permanent') {
+          Swal.fire({
+            icon: 'success',
+            title: 'ลบถาวรสำเร็จ!',
+            text: 'ลบอุปกรณ์ออกจากระบบเรียบร้อยแล้ว',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#28a745',
+            timer: 3000,
+            timerProgressBar: true
+          });
+        } else if (success === 'empty') {
+          Swal.fire({
+            icon: 'success',
+            title: 'ล้างถังขยะสำเร็จ!',
+            text: 'ลบอุปกรณ์ทั้งหมดในถังขยะเรียบร้อยแล้ว',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#28a745',
+            timer: 3000,
+            timerProgressBar: true
+          });
+        } else if (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      });
+    <% } %>
+
+    // Permanent Delete Confirmation
+    document.querySelectorAll('.permanent-delete-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const equipmentId = this.getAttribute('data-id');
+        const equipmentName = this.getAttribute('data-name');
+        
+        Swal.fire({
+          title: 'ลบถาวรใช่หรือไม่?',
+          html: `คุณกำลังจะลบ <strong>"${equipmentName}"</strong> ออกจากระบบถาวร<span class="text-danger">การกระทำนี้ไม่สามารถย้อนกลับได้!</span>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'ใช่, ลบถาวร!',
+          cancelButtonText: 'ยกเลิก',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const form = document.getElementById('permanentDeleteForm');
+            form.action = `/admin/trash/equipments/permanent-delete/${equipmentId}`;
+            form.submit();
+          }
+        });
+      });
+    });
+
+    // Empty Trash Confirmation
+    const emptyTrashBtn = document.getElementById('emptyTrashBtn');
+    if (emptyTrashBtn) {
+      emptyTrashBtn.addEventListener('click', function() {
+        Swal.fire({
+          title: 'ล้างถังขยะทั้งหมด?',
+          html: 'คุณกำลังจะลบอุปกรณ์ทั้งหมดในถังขยะออกจากระบบถาวร<span class="text-danger"><strong>การกระทำนี้ไม่สามารถย้อนกลับได้!</strong></span>',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'ใช่, ล้างถังขยะ!',
+          cancelButtonText: 'ยกเลิก',
+          reverseButtons: true,
+          input: 'checkbox',
+          inputPlaceholder: 'ฉันเข้าใจและยืนยันการลบถาวร'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (result.value) {
+              document.getElementById('emptyTrashForm').submit();
+            } else {
+              Swal.fire({
+                icon: 'info',
+                title: 'กรุณายืนยัน',
+                text: 'กรุณาทำเครื่องหมายในช่องยืนยันเพื่อดำเนินการต่อ',
+                confirmButtonColor: '#667eea'
+              });
+            }
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>

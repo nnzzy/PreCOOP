@@ -5,7 +5,337 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equipment</title>
 </head>
+<style>
+  .equipment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .equipment-card {
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .equipment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .equipment-image-container {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .equipment-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .equipment-image-container .no-image {
+    color: white;
+    font-size: 3rem;
+  }
+
+  .equipment-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .equipment-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .equipment-category {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .equipment-info {
+    margin-bottom: 1rem;
+    flex: 1;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .info-row i {
+    width: 20px;
+    margin-right: 0.5rem;
+    color: #667eea;
+  }
+
+  .equipment-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .status-available {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-unavailable {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .equipment-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .equipment-actions .btn {
+    flex: 1;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .filter-section .form-select {
+    max-width: 250px;
+  }
+</style>
 <body>
-    
+    <div class="equipment-header">
+      <div>
+        <h1 class="page-title mb-2">จัดการอุปกรณ์</h1>
+        <p class="text-muted">รายการอุปกรณ์ทั้งหมดในคณะ</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/admin/trash/equipments" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>ถังขยะ
+        </a>
+        <a href="/admin/categories" class="btn btn-outline-primary">
+          <i class="bi bi-folder me-2"></i>จัดการหมวดหมู่
+        </a>
+        <a href="/admin/equipmentAdmin/add" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-2"></i>เพิ่มอุปกรณ์
+        </a>
+      </div>
+    </div>
+
+<% if (locals.alert) { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      <% if (alert.type === 'error' || alert.type === 'warning') { %>
+        Swal.fire({
+          icon: '<%= alert.type %>',
+          title: '<%= alert.title %>',
+          text: '<%= alert.message %>',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '<%= alert.type === "error" ? "#dc3545" : "#ffc107" %>'
+        });
+      <% } %>
+    });
+  </script>
+<% } %>
+
+    <% if (equipments && equipments.length > 0) { %>
+      <div class="equipment-grid">
+        <% equipments.forEach(equipment => { %>
+          <div class="equipment-card">
+            <div class="equipment-image-container">
+              <% if (equipment.image) { %>
+                <img src="<%= equipment.image %>" alt="<%= equipment.name %>">
+              <% } else { %>
+                <div class="no-image">
+                  <i class="bi bi-image"></i>
+                </div>
+              <% } %>
+            </div>
+            
+            <div class="equipment-body">
+              <h3 class="equipment-name"><%= equipment.name %></h3>
+              
+              <span class="equipment-category">
+                <i class="bi bi-tag-fill me-1"></i>
+                <%= equipment.category_id ? equipment.category_id.name : 'ไม่ระบุ' %>
+              </span>
+
+              <div class="equipment-info">
+                <% if (equipment.location) { %>
+                  <div class="info-row">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span><%= equipment.location %></span>
+                  </div>
+                <% } %>
+                
+                <% if (equipment.description) { %>
+                  <div class="equipment-description">
+                    <%= equipment.description %>
+                  </div>
+                <% } %>
+              </div>
+
+              <div class="status-badge <%= equipment.status === 'available' ? 'status-available' : 'status-unavailable' %>">
+                <i class="bi <%= equipment.status === 'available' ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i>
+                <%= equipment.status === 'available' ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน' %>
+              </div>
+
+              <div class="equipment-actions">
+                <a href="/admin/equipmentAdmin/edit/<%= equipment._id %>" class="btn btn-warning btn-sm">
+                  <i class="bi bi-pencil me-1"></i>แก้ไข
+                </a>
+                <form action="/admin/equipmentAdmin/delete/<%= equipment._id %>" method="POST" class="delete-form" style="flex: 1;">
+                    <button type="button" class="btn btn-danger btn-sm w-100 delete-btn" data-id="<%= equipment._id %>">
+                        <i class="bi bi-trash me-1"></i>ลบ
+                    </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h3>ยังไม่มีอุปกรณ์ในระบบ</h3>
+        <p>เริ่มต้นเพิ่มอุปกรณ์แรกของคุณ</p>
+      </div>
+    <% } %>
+
+
+<% if (locals.alert) { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      <% if (alert.type === 'success') { %>
+        Swal.fire({
+          icon: 'success',
+          title: '<%= alert.title %>',
+          text: '<%= alert.message %>',
+          confirmButtonText: 'ตลอบ',
+          confirmButtonColor: '#667eea',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      <% } else if (alert.type === 'error') { %>
+        Swal.fire({
+          icon: 'error',
+          title: '<%= alert.title %>',
+          text: '<%= alert.message %>',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#dc3545'
+        });
+      <% } else if (alert.type === 'warning') { %>
+        Swal.fire({
+          icon: 'warning',
+          title: '<%= alert.title %>',
+          text: '<%= alert.message %>',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#ffc107'
+        });
+      <% } %>
+    });
+  </script>
+<% } %>
+
+<script>
+  // SweetAlert2 for Delete Confirmation
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const equipmentId = this.getAttribute('data-id');
+      
+      Swal.fire({
+        title: 'คุณแน่ใจหรือไม่?',
+        text: "คุณต้องการลบอุปกรณ์นี้ใช่หรือไม่?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Submit form
+          this.closest('form').submit();
+        }
+      });
+    });
+  });
+</script>
+
+
 </body>
 </html>

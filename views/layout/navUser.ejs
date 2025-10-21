@@ -149,13 +149,13 @@
 
   <ul class="sidebar-menu">
     <li>
-      <a href="#" class="active">
+      <a href="/users" class="<%= (typeof title !== 'undefined' && title === 'User Dashboard') ? 'active' : '' %>">
         <i class="bi bi-speedometer2"></i>
         <span>แดชบอร์ด</span>
       </a>
     </li>
     <li>
-      <a href="#">
+      <a href="/users/userEquipment" class="<%= (typeof title !== 'undefined' && title === 'User Equipment') ? 'active' : '' %>">
         <i class="bi bi-tools"></i>
         <span>อุปกรณ์ทั้งหมดในคณะ</span>
       </a>
@@ -167,7 +167,7 @@
       </a>
     </li>
     <li>
-      <a href="#">
+      <a href="/users/returnEquipment" class="<%= (typeof title !== 'undefined' && title === 'returnEquipment') ? 'active' : '' %>">
         <i class="bi bi-repeat-1"></i>
         <span>การคืนอุปกรณ์</span>
       </a>
@@ -184,7 +184,7 @@
   <div class="sidebar-footer">
     <button class="logout-btn" onclick="window.location.href='/logout'">
       <i class="bi bi-box-arrow-right"></i>
-      <span>Logout</span>
+      <span>ออกจากระบบ</span>
     </button>
   </div>
 </div>

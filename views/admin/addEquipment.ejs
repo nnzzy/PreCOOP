@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<style>
+  .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e3e6e8;
+  }
+
+  .form-header h2 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .required {
+    color: #dc3545;
+  }
+
+  .image-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .image-upload-area:hover {
+    border-color: #667eea;
+    background: #f0f0ff;
+  }
+
+  .image-upload-area.dragover {
+    border-color: #667eea;
+    background: #e8e8ff;
+  }
+
+  .image-preview-container {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .remove-image-btn {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e3e6e8;
+  }
+
+  .btn {
+    padding: 0.75rem 2rem;
+  }
+</style>
+<body>
+      <a href="/admin/equipmentAdmin" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left me-2"></i>กลับไปหน้าอุปกรณ์
+      </a>
+  <div class="form-container">
+    <div class="form-card">
+      <div class="form-header">
+        <h2>
+          <i class="bi bi-plus-circle me-2"></i>
+          <%= title %>
+        </h2>
+      </div>
+      
+
+
+      <% if (locals.alert) { %>
+        <div class="alert alert-<%= alert.type %> alert-dismissible fade show" role="alert">
+          <strong><%= alert.title %></strong> <%= alert.message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+
+      <form action="/admin/equipmentAdmin/add" method="POST" enctype="multipart/form-data">
+        <!-- รูปภาพ -->
+        <div class="mb-4">
+          <label class="form-label">รูปภาพอุปกรณ์</label>
+          <div class="image-upload-area" id="imageUploadArea">
+            <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;">
+            <div id="uploadPrompt">
+              <i class="bi bi-cloud-upload upload-icon"></i>
+              <p class="mb-1"><strong>คลิกเพื่ออัพโหลดรูปภาพ</strong></p>
+              <p class="text-muted small mb-0">หรือลากไฟล์มาวางที่นี่</p>
+              <p class="text-muted small">รองรับ: JPG, PNG, GIF, WEBP (ขนาดไม่เกิน 5MB)</p>
+            </div>
+          </div>
+          <div class="image-preview-container" id="imagePreviewContainer">
+            <img id="imagePreview" class="image-preview" alt="Preview">
+            <button type="button" class="btn btn-danger btn-sm remove-image-btn" id="removeImageBtn">
+              <i class="bi bi-trash me-1"></i>ลบรูปภาพ
+            </button>
+          </div>
+        </div>
+
+        <!-- ชื่ออุปกรณ์ -->
+        <div class="mb-3">
+          <label for="name" class="form-label">
+            ชื่ออุปกรณ์ <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="name" 
+            name="name" 
+            required
+            maxlength="100"
+            value="<%= locals.formData ? formData.name : '' %>"
+          >
+        </div>
+
+        <!-- หมวดหมู่ -->
+        <div class="mb-3">
+          <label for="category_id" class="form-label">
+            หมวดหมู่ <span class="required">*</span>
+          </label>
+          <select class="form-select" id="category_id" name="category_id" required>
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            <% categories.forEach(category => { %>
+              <option value="<%= category._id %>" 
+                <%= locals.formData && formData.category_id === category._id.toString() ? 'selected' : '' %>>
+                <%= category.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- สถานที่ -->
+        <div class="mb-3">
+          <label for="location" class="form-label">สถานที่</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="location" 
+            name="location"
+            maxlength="100"
+            value="<%= locals.formData ? formData.location : '' %>"
+          >
+        </div>
+
+        <!-- สถานะ -->
+        <div class="mb-3">
+          <label for="status" class="form-label">สถานะ</label>
+          <select class="form-select" id="status" name="status">
+            <option value="available" <%= locals.formData && formData.status === 'available' ? 'selected' : '' %>>
+              พร้อมใช้งาน
+            </option>
+            <option value="unavailable" <%= locals.formData && formData.status === 'unavailable' ? 'selected' : '' %>>
+              ไม่พร้อมใช้งาน
+            </option>
+          </select>
+        </div>
+
+        <!-- รายละเอียด -->
+        <div class="mb-4">
+          <label for="description" class="form-label">รายละเอียด</label>
+          <textarea 
+            class="form-control" 
+            id="description" 
+            name="description" 
+            rows="4"
+            maxlength="500"
+          ><%= locals.formData ? formData.description : '' %></textarea>
+          <small class="text-muted">รายละเอียดสูงสุด 500 ตัวอักษร</small>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/equipmentAdmin" class="btn btn-secondary">
+            <i class="bi bi-x-circle me-2"></i>ยกเลิก
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-2"></i>บันทึก
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Image Upload Handling
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageInput = document.getElementById('imageInput');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+
+    // Click to upload
+    imageUploadArea.addEventListener('click', () => {
+      imageInput.click();
+    });
+
+    // File input change
+    imageInput.addEventListener('change', handleFileSelect);
+
+    // Drag and drop
+    imageUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imageUploadArea.classList.add('dragover');
+    });
+
+    imageUploadArea.addEventListener('dragleave', () => {
+      imageUploadArea.classList.remove('dragover');
+    });
+
+    imageUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imageUploadArea.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        imageInput.files = files;
+        handleFileSelect();
+      }
+    });
+
+    // Remove image
+    removeImageBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      imageInput.value = '';
+      uploadPrompt.style.display = 'block';
+      imagePreviewContainer.style.display = 'none';
+      removeImageBtn.style.display = 'none';
+    });
+
+    function handleFileSelect() {
+      const file = imageInput.files[0];
+      if (file) {
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('รองรับเฉพาะไฟล์รูปภาพ (JPEG, PNG, GIF, WEBP)');
+          imageInput.value = '';
+          return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+          imageInput.value = '';
+          return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imagePreview.src = e.target.result;
+          uploadPrompt.style.display = 'none';
+          imagePreviewContainer.style.display = 'block';
+          removeImageBtn.style.display = 'inline-block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+  .equipment-header {
+    margin-bottom: 2rem;
+  }
+
+  .search-filter-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box input {
+    padding-left: 2.5rem;
+    border-radius: 2rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+  }
+
+  .search-box input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+
+  .search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+
+  .equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .equipment-card {
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .equipment-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .equipment-image-container {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .equipment-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .equipment-card:hover .equipment-image-container img {
+    transform: scale(1.05);
+  }
+
+  .equipment-image-container .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 4rem;
+  }
+
+  .status-overlay {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+  }
+
+  .status-available {
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+  }
+
+  .status-unavailable {
+    background: rgba(108, 117, 125, 0.9);
+    color: white;
+  }
+
+  .equipment-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .equipment-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .equipment-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.813rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .equipment-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .equipment-info-grid {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #495057;
+  }
+
+  .info-item i {
+    color: #667eea;
+    width: 18px;
+  }
+
+  .equipment-actions {
+    margin-top: auto;
+  }
+
+  .btn-borrow {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+  }
+
+  .btn-borrow:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 5rem;
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+
+  .empty-state h3 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    color: #6c757d;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  .equipment-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .equipment-preview-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .equipment-preview-info h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+
+  .equipment-preview-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .filter-chip {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .filter-chip:hover,
+  .filter-chip.active {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+  }
+
+</style>
+
+<div class="equipment-header">
+  <h1 class="page-title mb-2">รายการอุปกรณ์</h1>
+  <p class="text-muted">เลือกอุปกรณ์ที่ต้องการยืม</p>
+</div>
+
+<!-- Statistics Section -->
+<% 
+  let availableCount = 0;
+  let unavailableCount = 0;
+  if (equipments && equipments.length > 0) {
+    equipments.forEach(eq => {
+      if (eq.status === 'available') availableCount++;
+      else unavailableCount++;
+    });
+  }
+%>
+
+<!-- Search & Filter Section -->
+<div class="search-filter-section">
+  <div class="row align-items-center">
+    <div class="col-md-6">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="searchInput" 
+          placeholder="ค้นหาอุปกรณ์..."
+        >
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="filter-chips">
+        <button class="filter-chip active" data-filter="all">
+          <i class="bi bi-grid me-1"></i>ทั้งหมด
+        </button>
+        <button class="filter-chip" data-filter="available">
+          <i class="bi bi-check-circle me-1"></i>พร้อมใช้งาน
+        </button>
+        <button class="filter-chip" data-filter="unavailable">
+          <i class="bi bi-x-circle me-1"></i>ไม่พร้อมใช้งาน
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Equipment Grid -->
+<% if (!equipments || equipments.length === 0) { %>
+  <div class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h3>ไม่มีอุปกรณ์</h3>
+    <p>ยังไม่มีอุปกรณ์ในระบบในขณะนี้</p>
+  </div>
+<% } else { %>
+  <div class="equipment-grid" id="equipmentGrid">
+    <% equipments.forEach(eq => { %>
+      <div class="equipment-card" data-status="<%= eq.status %>" data-name="<%= eq.name.toLowerCase() %>">
+        <div class="equipment-image-container">
+          <% if (eq.image) { %>
+            <img src="<%= eq.image %>" alt="<%= eq.name %>">
+          <% } else { %>
+            <div class="no-image">
+              <i class="bi bi-box-seam"></i>
+            </div>
+          <% } %>
+          <div class="status-overlay <%= eq.status === 'available' ? 'status-available' : 'status-unavailable' %>">
+            <i class="bi <%= eq.status === 'available' ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i>
+            <%= eq.status === 'available' ? 'พร้อมใช้' : 'ไม่พร้อม' %>
+          </div>
+        </div>
+
+        <div class="equipment-body">
+          <h3 class="equipment-name"><%= eq.name %></h3>
+          
+          <% if (eq.category_id) { %>
+            <span class="equipment-category">
+              <i class="bi bi-tag-fill"></i>
+              <%= eq.category_id.name %>
+            </span>
+          <% } %>
+
+          <% if (eq.description) { %>
+            <p class="equipment-description"><%= eq.description %></p>
+          <% } %>
+
+          <% if (eq.location) { %>
+            <div class="equipment-info-grid">
+              <div class="info-item">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span><%= eq.location %></span>
+              </div>
+            </div>
+          <% } %>
+
+          <div class="equipment-actions">
+            <% if (eq.status === 'available') { %>
+              <button 
+                class="btn btn-primary btn-borrow"
+                data-bs-toggle="modal"
+                data-bs-target="#borrowModal"
+                data-id="<%= eq._id %>"
+                data-name="<%= eq.name %>"
+                data-image="<%= eq.image || '' %>"
+              >
+                <i class="bi bi-box-arrow-in-down me-2"></i>ยืมอุปกรณ์
+              </button>
+            <% } else { %>
+              <button class="btn btn-secondary btn-borrow" disabled>
+                <i class="bi bi-lock me-2"></i>ไม่พร้อมให้ยืม
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<!-- Borrow Modal -->
+<div class="modal fade" id="borrowModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" id="borrowForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-box-arrow-in-down me-2"></i>ยืมอุปกรณ์
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="equipment-preview" id="equipmentPreview">
+            <div class="equipment-preview-icon">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="equipment-preview-info">
+              <h5 id="modalEquipmentName"></h5>
+              <p>กรุณาระบุวันที่จะคืนอุปกรณ์</p>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="return_date" class="form-label fw-semibold">
+              <i class="bi bi-calendar-check me-2"></i>วันที่จะคืน
+            </label>
+            <input 
+              type="date" 
+              class="form-control form-control-lg" 
+              id="return_date"
+              name="return_date" 
+              required
+            >
+            <div class="form-text">กรุณาเลือกวันที่คุณจะคืนอุปกรณ์</div>
+          </div>
+
+          <div class="alert alert-info d-flex align-items-center mb-0">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <small>กรุณาคืนอุปกรณ์ตามวันที่กำหนด หากเกินกำหนดอาจมีผลต่อการยืมครั้งต่อไป</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-2"></i>ยกเลิก
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-2"></i>ยืนยันการยืม
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Modal Setup
+const borrowModal = document.getElementById('borrowModal');
+if (borrowModal) {
+  borrowModal.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget;
+    const equipmentId = button.getAttribute('data-id');
+    const equipmentName = button.getAttribute('data-name');
+
+    document.getElementById('modalEquipmentName').textContent = equipmentName;
+    document.getElementById('borrowForm').action = `/users/borrow/${equipmentId}`;
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('return_date').setAttribute('min', today);
+  });
+}
+
+// Search Functionality
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const cards = document.querySelectorAll('.equipment-card');
+    
+    cards.forEach(card => {
+      const name = card.getAttribute('data-name');
+      if (name.includes(searchTerm)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Filter Functionality
+const filterChips = document.querySelectorAll('.filter-chip');
+filterChips.forEach(chip => {
+  chip.addEventListener('click', function() {
+    // Remove active class from all chips
+    filterChips.forEach(c => c.classList.remove('active'));
+    // Add active class to clicked chip
+    this.classList.add('active');
+    
+    const filter = this.getAttribute('data-filter');
+    const cards = document.querySelectorAll('.equipment-card');
+    
+    cards.forEach(card => {
+      const status = card.getAttribute('data-status');
+      if (filter === 'all' || status === filter) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

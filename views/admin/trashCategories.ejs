@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<style>
+  .trash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .category-table {
+    background: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .table thead {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+  }
+
+  .table thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 500;
+  }
+
+  .table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .deleted-badge {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 0.375rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+</style>
+<body>
+  <div class="trash-header">
+    <div>
+      <h1 class="page-title mb-2">
+        <i class="bi bi-trash me-2"></i>ถังขยะ - หมวดหมู่
+      </h1>
+      <p class="text-muted">รายการหมวดหมู่ที่ถูกลบ</p>
+        <a href="/admin/categories" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>กลับไปหน้าหมวดหมู่
+      </a>
+    </div>
+    <div class="d-flex gap-2">
+      <% if (categories && categories.length > 0) { %>
+        <button type="button" class="btn btn-danger" id="emptyTrashBtn">
+          <i class="bi bi-trash3 me-2"></i>ล้างถังขยะทั้งหมด
+        </button>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (categories && categories.length > 0) { %>
+    <div class="category-table">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th width="10%">#</th>
+            <th>ชื่อหมวดหมู่</th>
+            <th width="15%">สถานะ</th>
+            <th width="20%">ลบเมื่อ</th>
+            <th width="20%">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% categories.forEach((category, index) => { %>
+            <tr>
+              <td><strong><%= index + 1 %></strong></td>
+              <td><%= category.name %></td>
+              <td>
+                <span class="deleted-badge">
+                  <i class="bi bi-trash-fill me-1"></i>ถูกลบ
+                </span>
+              </td>
+              <td>
+                <%= new Date(category.deleted_at).toLocaleDateString('th-TH', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) %>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <form action="/admin/trash/categories/restore/<%= category._id %>" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success btn-sm">
+                      <i class="bi bi-arrow-counterclockwise me-1"></i>กู้คืน
+                    </button>
+                  </form>
+                  <button type="button" 
+                          class="btn btn-danger btn-sm permanent-delete-btn" 
+                          data-id="<%= category._id %>" 
+                          data-name="<%= category.name %>">
+                    <i class="bi bi-trash-fill me-1"></i>ลบถาวร
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <i class="bi bi-trash"></i>
+      <h3>ถังขยะว่างเปล่า</h3>
+      <p class="text-muted">ไม่มีหมวดหมู่ในถังขยะ</p>
+    </div>
+  <% } %>
+
+  <!-- Form สำหรับลบถาวร (ซ่อนไว้) -->
+  <form id="permanentDeleteForm" action="" method="POST" style="display: none;"></form>
+  <form id="emptyTrashForm" action="/admin/trash/categories/empty" method="POST" style="display: none;"></form>
+
+  <script>
+    // SweetAlert for Success/Error Messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const success = urlParams.get('success');
+      const error = urlParams.get('error');
+
+      if (success === 'restore') {
+        Swal.fire({
+          icon: 'success',
+          title: 'กู้คืนสำเร็จ!',
+          text: 'กู้คืนหมวดหมู่เรียบร้อยแล้ว',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      } else if (success === 'permanent') {
+        Swal.fire({
+          icon: 'success',
+          title: 'ลบถาวรสำเร็จ!',
+          text: 'ลบหมวดหมู่ออกจากระบบเรียบร้อยแล้ว',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      } else if (success === 'empty') {
+        Swal.fire({
+          icon: 'success',
+          title: 'ล้างถังขยะสำเร็จ!',
+          text: 'ลบหมวดหมู่ทั้งหมดในถังขยะเรียบร้อยแล้ว',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#28a745',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      } else if (error === 'has-equipment') {
+        Swal.fire({
+          icon: 'error',
+          title: 'ไม่สามารถลบได้!',
+          text: 'หมวดหมู่นี้ยังมีอุปกรณ์ที่เชื่อมโยงอยู่ กรุณาลบอุปกรณ์ก่อน',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#dc3545'
+        });
+      } else if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด!',
+          text: 'ไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
+
+    // Permanent Delete Confirmation
+    document.querySelectorAll('.permanent-delete-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const categoryId = this.getAttribute('data-id');
+        const categoryName = this.getAttribute('data-name');
+        
+        Swal.fire({
+          title: 'ลบถาวรใช่หรือไม่?',
+          html: `คุณกำลังจะลบหมวดหมู่ <strong>"${categoryName}"</strong> ออกจากระบบถาวร<span class="text-danger">การกระทำนี้ไม่สามารถย้อนกลับได้!</span>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'ใช่, ลบถาวร!',
+          cancelButtonText: 'ยกเลิก',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const form = document.getElementById('permanentDeleteForm');
+            form.action = `/admin/trash/categories/permanent-delete/${categoryId}`;
+            form.submit();
+          }
+        });
+      });
+    });
+
+    // Empty Trash Confirmation
+    const emptyTrashBtn = document.getElementById('emptyTrashBtn');
+    if (emptyTrashBtn) {
+      emptyTrashBtn.addEventListener('click', function() {
+        Swal.fire({
+          title: 'ล้างถังขยะทั้งหมด?',
+          html: 'คุณกำลังจะลบหมวดหมู่ทั้งหมดในถังขยะออกจากระบบถาวร<span class="text-danger"><strong>การกระทำนี้ไม่สามารถย้อนกลับได้!</strong></span>',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'ใช่, ล้างถังขยะ!',
+          cancelButtonText: 'ยกเลิก',
+          reverseButtons: true,
+          input: 'checkbox',
+          inputPlaceholder: 'ฉันเข้าใจและยืนยันการลบถาวร'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (result.value) {
+              document.getElementById('emptyTrashForm').submit();
+            } else {
+              Swal.fire({
+                icon: 'info',
+                title: 'กรุณายืนยัน',
+                text: 'กรุณาทำเครื่องหมายในช่องยืนยันเพื่อดำเนินการต่อ',
+                confirmButtonColor: '#667eea'
+              });
+            }
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>

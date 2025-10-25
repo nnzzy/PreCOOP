@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><=% title %></title>
+</head>
+<body>
+    <style>
+  .form-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .form-header h2 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .required {
+    color: #dc3545;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+
+  .password-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .password-section h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  .password-input-group {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+  }
+
+  .password-toggle:hover {
+    color: #667eea;
+  }
+
+  .btn-group-custom {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .btn-group-custom .btn {
+    flex: 1;
+    padding: 0.75rem;
+  }
+</style>
+
+<div class="form-container">
+  <div class="mb-4">
+    <a href="/admin/listuser" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>กลับไปหน้ารายการ
+    </a>
+  </div>
+
+  <% if (locals.alert) { %>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+          icon: '<%= alert.type %>',
+          title: '<%= alert.title %>',
+          text: '<%= alert.message %>',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '<%= alert.type === "error" ? "#dc3545" : "#667eea" %>'
+        });
+      });
+    </script>
+  <% } %>
+
+  <div class="form-card">
+    <div class="form-header">
+      <h2><i class="bi bi-person-gear me-2"></i>แก้ไขข้อมูลผู้ใช้</h2>
+      <p class="text-muted mb-0">แก้ไขข้อมูลผู้ใช้ในระบบ</p>
+    </div>
+
+    <form action="/admin/listuser/edit/<%= user._id %>" method="POST" id="editUserForm">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">
+            <i class="bi bi-person me-1"></i>ชื่อ <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            name="fname" 
+            class="form-control" 
+            value="<%= user.fname %>"
+            required
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">
+            <i class="bi bi-person me-1"></i>นามสกุล <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            name="lname" 
+            class="form-control" 
+            value="<%= user.lname %>"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">
+          <i class="bi bi-envelope me-1"></i>อีเมล <span class="required">*</span>
+        </label>
+        <input 
+          type="email" 
+          name="email" 
+          class="form-control" 
+          value="<%= user.email %>"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">
+          <i class="bi bi-shield me-1"></i>บทบาท <span class="required">*</span>
+        </label>
+        <select name="userRole" class="form-select" required>
+          <option value="user" <%= user.userRole === 'user' ? 'selected' : '' %>>
+            ผู้ใช้ทั่วไป
+          </option>
+          <option value="admin" <%= user.userRole === 'admin' ? 'selected' : '' %>>
+            ผู้ดูแลระบบ
+          </option>
+        </select>
+        <% if (locals.user && locals.user.id === user._id.toString()) { %>
+          <small class="text-muted">หมายเหตุ: คุณไม่สามารถเปลี่ยนบทบาทของตัวเองได้</small>
+        <% } %>
+      </div>
+
+      <div class="password-section">
+        <h5><i class="bi bi-key me-2"></i>เปลี่ยนรหัสผ่าน (ถ้าต้องการ)</h5>
+        <small class="text-muted d-block mb-3">เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน</small>
+
+        <div class="mb-3">
+          <label class="form-label">รหัสผ่านใหม่</label>
+          <div class="password-input-group">
+            <input 
+              type="password" 
+              name="password" 
+              id="password"
+              class="form-control" 
+              placeholder="********"
+              minlength="6"
+            >
+            <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <small class="text-muted">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+          <div class="password-input-group">
+            <input 
+              type="password" 
+              name="confirmPassword" 
+              id="confirmPassword"
+              class="form-control" 
+              placeholder="********"
+            >
+            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <small id="matchMessage"></small>
+        </div>
+      </div>
+
+      <div class="btn-group-custom">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <i class="bi bi-check-circle me-2"></i>บันทึกการแก้ไข
+        </button>
+        <a href="/admin/listuser" class="btn btn-secondary">
+          <i class="bi bi-x-circle me-2"></i>ยกเลิก
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Toggle Password Visibility
+function togglePassword(inputId, button) {
+  const input = document.getElementById(inputId);
+  const icon = button.querySelector('i');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('bi-eye');
+    icon.classList.add('bi-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('bi-eye-slash');
+    icon.classList.add('bi-eye');
+  }
+}
+
+// Check Password Match
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const matchMessage = document.getElementById('matchMessage');
+
+function checkPasswordMatch() {
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+
+  // ถ้าทั้งสองช่องว่าง ให้ผ่านได้
+  if (password === '' && confirmPassword === '') {
+    matchMessage.innerHTML = '';
+    return true;
+  }
+
+  // ถ้ามีการกรอกแต่ไม่ตรงกัน
+  if (confirmPassword !== '') {
+    if (password === confirmPassword) {
+      matchMessage.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>รหัสผ่านตรงกัน</span>';
+      return true;
+    } else {
+      matchMessage.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>รหัสผ่านไม่ตรงกัน</span>';
+      return false;
+    }
+  }
+
+  return true;
+}
+
+passwordInput.addEventListener('input', checkPasswordMatch);
+confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+// Form Validation
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+
+  // ถ้ากรอกรหัสผ่าน แต่ไม่ตรงกัน
+  if (password !== '' && password !== confirmPassword) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'error',
+      title: 'รหัสผ่านไม่ตรงกัน',
+      text: 'กรุณาตรวจสอบรหัสผ่านและยืนยันรหัสผ่านให้ตรงกัน',
+      confirmButtonColor: '#667eea'
+    });
+  }
+
+  // ถ้ากรอกรหัสผ่านแต่สั้นเกินไป
+  if (password !== '' && password.length < 6) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'warning',
+      title: 'รหัสผ่านสั้นเกินไป',
+      text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+      confirmButtonColor: '#ffc107'
+    });
+  }
+});
+</script>
+</body>
+</html>

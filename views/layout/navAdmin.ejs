@@ -149,7 +149,7 @@
 
   <ul class="sidebar-menu">
     <li>
-      <a href="/admin" class="<%= (typeof title !== 'undefined' && title === 'Admin Dashboard') ? 'active' : '' %>">
+      <a href="/admin" class="<%= (typeof title !== 'undefined' && title === 'adminDashboard') ? 'active' : '' %>">
         <i class="bi bi-speedometer2"></i>
         <span>แดชบอร์ด</span>
       </a>
@@ -173,16 +173,9 @@
       </a>
     </li>
     <li>
-      <a href="#">
+      <a href="/admin/listuser" class="<%= (typeof title !== 'undefined' && title === 'Mange User') ? 'active' : '' %>">
         <i class="bi bi-person"></i>
         <span>การจัดการบัญชีผู้ใช้</span>
-      </a>
-    </li>
-    <hr>
-    <li>
-      <a href="#">
-        <i class="bi bi-gear"></i>
-        <span>การตั้งค่า</span>
       </a>
     </li>
   </ul>

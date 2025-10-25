@@ -2,11 +2,52 @@ const express = require('express');
 const router = express.Router();
 const Equipment = require('../models/equipments');
 const Borrow = require('../models/Borrow');
+const User = require('../models/user');    
+const bcrypt = require('bcrypt');           
 const { isUser } = require('../middleware/auth');
 
+router.get('/', isUser, async (req, res) => {
+  try {
+    const user = req.session.user;
 
-router.get('/', isUser, (req, res) => {
-   res.render('users/userDashboard', { title: 'User Dashboard' });
+    // นับอุปกรณ์ทั้งหมด
+    const totalEquipments = await Equipment.countDocuments({ deleted_at: null });
+
+    // นับอุปกรณ์ที่ยืมได้ (available)
+    const availableEquipments = await Equipment.countDocuments({ 
+      deleted_at: null, 
+      status: 'available' 
+    });
+
+    // นับอุปกรณ์ที่ไม่ว่าง (unavailable)
+    const unavailableEquipments = await Equipment.countDocuments({ 
+      deleted_at: null, 
+      status: 'unavailable' 
+    });
+
+    // นับจำนวนที่ user คนนี้กำลังยืมอยู่
+    const myBorrowedCount = await Borrow.countDocuments({
+      user_id: user.id,
+      status: { $in: ['waitForRent', 'Borrowed', 'PendingReturn'] }
+    });
+
+    res.render('users/userDashboard', { 
+      title: 'User Dashboard',
+      totalEquipments,
+      availableEquipments,
+      unavailableEquipments,
+      myBorrowedCount
+    });
+  } catch (err) {
+    console.error('Error loading dashboard:', err);
+    res.render('users/userDashboard', { 
+      title: 'User Dashboard',
+      totalEquipments: 0,
+      availableEquipments: 0,
+      unavailableEquipments: 0,
+      myBorrowedCount: 0
+    });
+  }
 });
 
 router.get('/userEquipment', isUser, async (req, res) => {
@@ -120,6 +161,180 @@ router.post('/returnEquipment/:id', isUser, async (req, res) => {
   }
 });
 
+// หน้าประวัติการยืม 
+router.get('/borrowhistory', isUser, async (req, res) => {
+  try {
+    const user = req.session.user;
+        
+    // ดึงประวัติการยืมที่คืนแล้วของ user คนนี้
+    const borrowHistory = await Borrow.find({
+      user_id: user.id,
+      status: 'Returned'
+    })
+    .populate('equipment_id')
+    .sort({ updated_at: -1 }); 
 
+    res.render('users/borrowHistory', {
+      title: 'borrowHistory',
+      borrowHistory,
+      alert: null
+    });
+  } catch (err) {
+    console.error('Error loading borrow history:', err);
+    res.render('users/borrowHistory', {
+      title: 'borrowHistory',
+      borrowHistory: [],
+      alert: {
+        type: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        message: 'ไม่สามารถโหลดประวัติการยืมได้'
+      }
+    });
+  }
+});
+
+
+router.get('/userSetting', isUser, async (req, res) => {
+  try {
+    const user = await User.findById(req.session.user.id);
+    
+    if (!user) {
+      return res.redirect('/login');
+    }
+
+    res.render('users/userSetting', {
+      title: 'userSetting',
+      user: user,
+      locals: {
+        user: req.session.user
+      }
+    });
+  } catch (err) {
+    console.error('Error loading user settings:', err);
+    res.render('users/userSetting', {
+      title: 'userSetting',
+      user: req.session.user,
+      alert: {
+        type: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        message: 'ไม่สามารถโหลดข้อมูลได้'
+      }
+    });
+  }
+});
+
+// อัปเดตข้อมูลส่วนตัว - แก้เป็น JSON response
+router.post('/userSetting', isUser, async (req, res) => {
+  try {
+    const { fname, lname, email } = req.body;
+    const userId = req.session.user.id;
+
+    // ตรวจสอบว่า email ซ้ำกับคนอื่นหรือไม่
+    const existingUser = await User.findOne({ 
+      email: email, 
+      _id: { $ne: userId } 
+    });
+
+    if (existingUser) {
+      return res.json({
+        success: false,
+        message: 'อีเมลนี้ถูกใช้งานแล้ว'
+      });
+    }
+
+    // อัปเดตข้อมูล
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { fname, lname, email },
+      { new: true }
+    );
+
+    // อัปเดต session
+    req.session.user = {
+      ...req.session.user,
+      fname: updatedUser.fname,
+      lname: updatedUser.lname,
+      email: updatedUser.email
+    };
+
+    return res.json({
+      success: true,
+      message: 'บันทึกข้อมูลเรียบร้อยแล้ว'
+    });
+
+  } catch (err) {
+    console.error('Error updating user:', err);
+    return res.json({
+      success: false,
+      message: 'ไม่สามารถอัปเดตข้อมูลได้'
+    });
+  }
+});
+
+// เปลี่ยนรหัสผ่าน - แก้เป็น JSON response
+router.post('/userSetting/changePassword', isUser, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const userId = req.session.user.id;
+
+    // ตรวจสอบข้อมูลที่ส่งมา
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.json({
+        success: false,
+        message: 'กรุณากรอกข้อมูลให้ครบถ้วน'
+      });
+    }
+
+    // ตรวจสอบว่ารหัสผ่านใหม่ตรงกัน
+    if (newPassword !== confirmPassword) {
+      return res.json({
+        success: false,
+        message: 'รหัสผ่านใหม่และการยืนยันไม่ตรงกัน'
+      });
+    }
+
+    // ตรวจสอบความยาวรหัสผ่าน
+    if (newPassword.length < 6) {
+      return res.json({
+        success: false,
+        message: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร'
+      });
+    }
+
+    // ดึงข้อมูล user
+    const user = await User.findById(userId);
+    
+    // ตรวจสอบรหัสผ่านเดิม
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isValidPassword) {
+      return res.json({
+        success: false,
+        message: 'รหัสผ่านเดิมไม่ถูกต้อง'
+      });
+    }
+
+    // Hash รหัสผ่านใหม่
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // อัปเดตรหัสผ่าน
+    await User.findByIdAndUpdate(userId, {
+      password: hashedNewPassword
+    });
+
+    return res.json({
+      success: true,
+      message: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'
+    });
+
+  } catch (err) {
+    console.error('Error changing password:', err);
+    return res.json({
+      success: false,
+      message: 'ไม่สามารถเปลี่ยนรหัสผ่านได้'
+    });
+  }
+});
 
 module.exports = router;

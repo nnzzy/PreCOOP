@@ -5,11 +5,26 @@ const Equipment = require('../models/equipments');
 const Categories = require('../models/Categories');
 const Borrow = require('../models/Borrow');
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 
-router.get('/', isAdmin, (req, res) => {
-  res.render('admin/adminDashboard', {
-    title: 'Admin Dashboard'
-  });
+
+
+router.get('/', isAdmin, async(req, res) => {
+  try {
+    const borrows = await Borrow.find()
+
+    
+    res.render('admin/adminDashboard', {
+      title: 'adminDashboard',
+      borrows,
+    });
+  } catch (err) {
+    console.error('Error loading borrows:', err);
+    res.render('admin/adminDashboard', {
+      title: 'adminDashboard',
+      borrows: [],
+    });
+  }
 });
 
 // เพิ่ม multer
@@ -717,6 +732,175 @@ router.post('/confirmReturn/approve/:id', isAdmin, async (req, res) => {
     });
   }
 });
+
+// แสดงรายชื่อผู้ใช้ทั้งหมด
+router.get('/listuser', isAdmin, async (req, res) => {
+  try {
+    const users = await User.find()
+      .sort({ created_at: -1 });
+
+    let alert = null;
+    
+    // จัดการ Success Messages
+    if (req.query.success === 'edit') {
+      alert = {
+        type: 'success',
+        title: 'สำเร็จ!',
+        message: 'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว'
+      };
+    } else if (req.query.success === 'delete') {
+      alert = {
+        type: 'success',
+        title: 'สำเร็จ!',
+        message: 'ลบผู้ใช้เรียบร้อยแล้ว'
+      };
+    }
+    
+    // จัดการ Error Messages
+    else if (req.query.error === 'self-delete') {
+      alert = {
+        type: 'error',
+        title: 'ไม่สามารถดำเนินการได้',
+        message: 'คุณไม่สามารถลบบัญชีของตัวเองได้'
+      };
+    } else if (req.query.error === 'has-borrow') {
+      alert = {
+        type: 'warning',
+        title: 'ไม่สามารถลบได้',
+        message: 'ผู้ใช้นี้มีประวัติการยืมอุปกรณ์ในระบบ'
+      };
+    } else if (req.query.error === 'delete') {
+      alert = {
+        type: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        message: 'ไม่สามารถลบผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง'
+      };
+    }
+
+    res.render('admin/listUser', {
+      title: 'Mange User',
+      users,
+      alert
+    });
+  } catch (err) {
+    console.error('Error loading users:', err);
+    res.render('admin/listUser', {
+      title: 'Mange User',
+      users: [],
+      alert: {
+        type: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        message: 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้'
+      }
+    });
+  }
+});
+
+// แก้ไขข้อมูลผู้ใช้ (API สำหรับ Modal)
+router.post('/listuser/edit/:id', isAdmin, async (req, res) => {
+  try {
+    const { fname, lname, email, userRole } = req.body;
+    const userId = req.params.id;
+
+    console.log('Received data:', req.body); // ✅ Debug
+
+    // ดึงข้อมูลผู้ใช้เดิมมาก่อน
+    const existingUserData = await User.findById(userId);
+    if (!existingUserData) {
+      return res.json({
+        success: false,
+        message: 'ไม่พบข้อมูลผู้ใช้'
+      });
+    }
+
+    // ✅ เตรียมข้อมูลสำหรับอัปเดต (ใช้ค่าเดิมถ้าไม่ได้ส่งมา)
+    const updateData = {
+      fname: fname ? fname.trim() : existingUserData.fname,
+      lname: lname ? lname.trim() : existingUserData.lname,
+      email: email ? email.trim() : existingUserData.email,
+      userRole: userRole || existingUserData.userRole
+    };
+
+    // ตรวจสอบว่าเป็นตัวเองหรือไม่
+    const isCurrentUser = req.session.user.id === userId;
+    
+    // ตรวจสอบว่ากำลังเปลี่ยนบทบาทหรือไม่
+    const isRoleChanging = existingUserData.userRole !== updateData.userRole;
+
+    // ถ้าเป็นตัวเองและพยายามเปลี่ยนบทบาท ให้บล็อก
+    if (isCurrentUser && isRoleChanging) {
+      return res.json({
+        success: false,
+        message: 'คุณไม่สามารถเปลี่ยนบทบาทของตัวเองได้'
+      });
+    }
+
+    // ตรวจสอบอีเมลซ้ำ (เฉพาะถ้ามีการเปลี่ยนอีเมล)
+    if (updateData.email !== existingUserData.email) {
+      const existingUser = await User.findOne({ 
+        email: updateData.email, 
+        _id: { $ne: userId } 
+      });
+
+      if (existingUser) {
+        return res.json({
+          success: false,
+          message: 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น'
+        });
+      }
+    }
+
+    // อัปเดตข้อมูล
+    await User.findByIdAndUpdate(userId, updateData);
+
+    // ถ้าแก้ไขข้อมูลตัวเอง ให้อัปเดต session ด้วย
+    if (isCurrentUser) {
+      req.session.user.fname = updateData.fname;
+      req.session.user.role = updateData.userRole;
+    }
+
+    res.json({
+      success: true,
+      message: 'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว'
+    });
+
+  } catch (err) {
+    console.error('Error updating user:', err);
+    res.json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดขณะแก้ไขข้อมูล: ' + err.message
+    });
+  }
+});
+
+// ลบผู้ใช้
+router.post('/listuser/delete/:id', isAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // ป้องกันการลบตัวเอง
+    if (req.session.user.id === userId) {
+      return res.redirect('/admin/listuser?error=self-delete');
+    }
+
+    // ตรวจสอบว่าผู้ใช้มีประวัติการยืมหรือไม่
+    const borrowCount = await Borrow.countDocuments({ user_id: userId });
+
+    if (borrowCount > 0) {
+      return res.redirect('/admin/listuser?error=has-borrow');
+    }
+
+    await User.findByIdAndDelete(userId);
+    
+    res.redirect('/admin/listuser?success=delete');
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.redirect('/admin/listuser?error=delete');
+  }
+});
+
+
+
 
 
 

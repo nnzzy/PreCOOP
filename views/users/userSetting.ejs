@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <style>
+    .setting-header {
+      margin-bottom: 2rem;
+    }
+
+    .setting-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1.5rem;
+      max-width: 1800px;
+    }
+
+    .card-title-section {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #f0f0f0;
+    }
+  </style>
+
+  <div class="setting-header">
+    <h1 class="page-title mb-2">ตั้งค่าบัญชี</h1>
+    <p class="text-muted">แก้ไขข้อมูลส่วนตัวและเปลี่ยนรหัสผ่าน</p>
+  </div>
+
+  <% if (locals.alert) { %>
+    <div class="alert alert-<%= alert.type %> alert-dismissible fade show" role="alert">
+      <strong><%= alert.title %></strong> <%= alert.message %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>
+
+  <!-- ฟอร์มข้อมูลส่วนตัว -->
+  <div class="setting-card">
+    <div class="card-title-section">
+      ข้อมูลส่วนตัว
+    </div>
+
+    <form id="profileForm">
+      <div class="mb-3">
+        <label for="fname" class="form-label">ชื่อ</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="fname" 
+          name="fname" 
+          value="<%= user.fname %>"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label for="lname" class="form-label">นามสกุล</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="lname" 
+          name="lname" 
+          value="<%= user.lname %>"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">อีเมล</label>
+        <input 
+          type="email" 
+          class="form-control" 
+          id="email" 
+          name="email" 
+          value="<%= user.email %>"
+          required
+        >
+        <div class="form-text">ใช้สำหรับเข้าสู่ระบบและรับการแจ้งเตือน</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">
+        บันทึกข้อมูล
+      </button>
+    </form>
+  </div>
+
+  <!-- ฟอร์มเปลี่ยนรหัสผ่าน -->
+  <div class="setting-card">
+    <div class="card-title-section">
+      เปลี่ยนรหัสผ่าน
+    </div>
+
+    <form id="passwordForm">
+      <div class="mb-3">
+        <label for="currentPassword" class="form-label">รหัสผ่านปัจจุบัน</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          id="currentPassword" 
+          name="currentPassword"
+          placeholder="กรอกรหัสผ่านปัจจุบัน"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label for="newPassword" class="form-label">รหัสผ่านใหม่</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          id="newPassword" 
+          name="newPassword"
+          placeholder="กรอกรหัสผ่านใหม่"
+          minlength="6www"
+          required
+        >
+        <div class="form-text">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="confirmPassword" class="form-label">ยืนยันรหัสผ่านใหม่</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          id="confirmPassword" 
+          name="confirmPassword"
+          placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
+          minlength="6"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn-warning w-100">
+        เปลี่ยนรหัสผ่าน
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // Handle profile form submission
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const data = {
+        fname: formData.get('fname'),
+        lname: formData.get('lname'),
+        email: formData.get('email')
+      };
+
+      if (!data.fname || !data.lname || !data.email) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลไม่ครบ',
+          text: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+          confirmButtonText: 'ตรวจสอบ'
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch('/users/userSetting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: result.message,
+            confirmButtonText: 'ตกลง',
+            timer: 2000,
+            timerProgressBar: true
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: result.message,
+            confirmButtonText: 'ลองอีกครั้ง'
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+          confirmButtonText: 'ตกลง'
+        });
+      }
+    });
+
+    // Handle password form submission
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const data = {
+        currentPassword: formData.get('currentPassword'),
+        newPassword: formData.get('newPassword'),
+        confirmPassword: formData.get('confirmPassword')
+      };
+
+      if (!data.currentPassword || !data.newPassword || !data.confirmPassword) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลไม่ครบ',
+          text: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+          confirmButtonText: 'ตรวจสอบ'
+        });
+        return;
+      }
+
+      if (data.newPassword !== data.confirmPassword) {
+        Swal.fire({
+          icon: 'error',
+          title: 'รหัสผ่านไม่ตรงกัน',
+          text: 'รหัสผ่านใหม่และการยืนยันไม่ตรงกัน',
+          confirmButtonText: 'ตรวจสอบ'
+        });
+        return;
+      }
+
+      if (data.newPassword.length < 6) {
+        Swal.fire({
+          icon: 'error',
+          title: 'รหัสผ่านสั้นเกินไป',
+          text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+          confirmButtonText: 'ตรวจสอบ'
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch('/users/userSetting/changePassword', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: result.message,
+            confirmButtonText: 'ตกลง',
+            timer: 2000,
+            timerProgressBar: true
+          }).then(() => {
+            document.getElementById('passwordForm').reset();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: result.message,
+            confirmButtonText: 'ลองอีกครั้ง'
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถเปลี่ยนรหัสผ่านได้ กรุณาลองใหม่อีกครั้ง',
+          confirmButtonText: 'ตกลง'
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<body>
+<style>
+  .user-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .user-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+  }
+
+  .user-table-container {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .table {
+    margin: 0;
+  }
+
+  .table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .table thead th {
+    padding: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    border: none;
+  }
+
+  .table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+  }
+
+  .role-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.813rem;
+    font-weight: 500;
+  }
+
+  .role-admin {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .role-user {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .modal-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+  }
+</style>
+
+<div class="user-header">
+  <div>
+    <h1>จัดการผู้ใช้</h1>
+    <p class="text-muted mb-0">รายชื่อผู้ใช้ทั้งหมดในระบบ</p>
+  </div>
+</div>
+
+<% if (locals.alert) { %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: '<%= alert.type %>',
+        title: '<%= alert.title %>',
+        text: '<%= alert.message %>',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#667eea'
+      });
+    });
+  </script>
+<% } %>
+
+<!-- ตารางผู้ใช้ -->
+<div class="user-table-container">
+  <% if (!users || users.length === 0) { %>
+    <div class="empty-state">
+      <h3>ไม่มีผู้ใช้ในระบบ</h3>
+      <p class="text-muted">รายชื่อผู้ใช้จะแสดงที่นี่</p>
+    </div>
+  <% } else { %>
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>อีเมล</th>
+          <th>บทบาท</th>
+          <th>วันที่สมัคร</th>
+          <th class="text-center">จัดการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach((user, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td>
+              <strong><%= user.fname %> <%= user.lname %></strong>
+              <% if (locals.user && locals.user.id === user._id.toString()) { %>
+                <span class="badge bg-primary ms-2">คุณ</span>
+              <% } %>
+            </td>
+            <td><%= user.email %></td>
+            <td>
+              <span class="role-badge <%= user.userRole === 'admin' ? 'role-admin' : 'role-user' %>">
+                <%= user.userRole === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้ทั่วไป' %>
+              </span>
+            </td>
+            <td>
+              <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString('th-TH', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              }) : '-' %>
+            </td>
+            <td>
+              <div class="action-buttons justify-content-center">
+                <button 
+                  class="btn btn-warning btn-sm" 
+                  onclick="openEditModal(
+                    '<%= user._id %>', 
+                    '<%= user.fname %>', 
+                    '<%= user.lname %>', 
+                    '<%= user.email %>', 
+                    '<%= user.userRole %>',
+                    <%= locals.user && locals.user.id === user._id.toString() ? 'true' : 'false' %>
+                  )"
+                >
+                  แก้ไข
+                </button>
+                <% if (locals.user && locals.user.id !== user._id.toString()) { %>
+                  <button 
+                    class="btn btn-danger btn-sm delete-btn" 
+                    data-id="<%= user._id %>"
+                    data-name="<%= user.fname %> <%= user.lname %>"
+                  >
+                    ลบ
+                  </button>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">แก้ไขข้อมูลผู้ใช้</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editUserForm">
+          <input type="hidden" id="editUserId">
+          <input type="hidden" id="isCurrentUser">
+          
+          <div class="mb-3">
+            <label class="form-label">ชื่อ</label>
+            <input type="text" class="form-control" id="editFname" name="fname">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">นามสกุล</label>
+            <input type="text" class="form-control" id="editLname" name="lname">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">อีเมล</label>
+            <input type="email" class="form-control" id="editEmail" name="email">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">บทบาท</label>
+            <select class="form-select" id="editUserRole" name="userRole">
+              <option value="user">ผู้ใช้ทั่วไป</option>
+              <option value="admin">ผู้ดูแลระบบ</option>
+            </select>
+            <small class="text-muted" id="roleWarning" style="display: none;">
+              คุณไม่สามารถเปลี่ยนบทบาทของตัวเองได้
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          ยกเลิก
+        </button>
+        <button type="button" class="btn btn-primary" id="saveEditBtn">
+          บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// เปิด Modal แก้ไข
+function openEditModal(userId, fname, lname, email, userRole, isCurrentUser) {
+  document.getElementById('editUserId').value = userId;
+  document.getElementById('editFname').value = fname;
+  document.getElementById('editLname').value = lname;
+  document.getElementById('editEmail').value = email;
+  document.getElementById('editUserRole').value = userRole;
+  document.getElementById('isCurrentUser').value = isCurrentUser;
+  
+  // ถ้าเป็นตัวเอง ให้ disable dropdown บทบาท
+  const roleSelect = document.getElementById('editUserRole');
+  const roleWarning = document.getElementById('roleWarning');
+  
+  if (isCurrentUser) {
+    roleSelect.disabled = true;
+    roleWarning.style.display = 'block';
+  } else {
+    roleSelect.disabled = false;
+    roleWarning.style.display = 'none';
+  }
+  
+  const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+  modal.show();
+}
+
+// บันทึกการแก้ไข
+document.getElementById('saveEditBtn').addEventListener('click', async function() {
+  const userId = document.getElementById('editUserId').value;
+  const fname = document.getElementById('editFname').value;
+  const lname = document.getElementById('editLname').value;
+  const email = document.getElementById('editEmail').value;
+  const userRole = document.getElementById('editUserRole').value;
+
+  // Disable button และแสดง loading
+  this.disabled = true;
+  this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...';
+
+  try {
+    const response = await fetch(`/admin/listuser/edit/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fname, lname, email, userRole })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'สำเร็จ!',
+        text: data.message,
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+        timerProgressBar: true
+      });
+      
+      // ปิด modal และ reload หน้า
+      const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+      modal.hide();
+      location.reload();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: data.message,
+        confirmButtonColor: '#dc3545'
+      });
+      
+      // Enable button กลับ
+      this.disabled = false;
+      this.innerHTML = 'บันทึก';
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: 'ไม่สามารถแก้ไขข้อมูลได้',
+      confirmButtonColor: '#dc3545'
+    });
+    
+    // Enable button กลับ
+    this.disabled = false;
+    this.innerHTML = 'บันทึก';
+  }
+});
+
+// SweetAlert2 for Delete Confirmation
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const userId = this.getAttribute('data-id');
+    const userName = this.getAttribute('data-name');
+    
+    Swal.fire({
+      title: 'คุณแน่ใจหรือไม่?',
+      text: `คุณต้องการลบผู้ใช้ "${userName}" ใช่หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // สร้างฟอร์มและ submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/listuser/delete/${userId}`;
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

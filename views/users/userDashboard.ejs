@@ -3,10 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title><%= title %></title>
 </head>
 <body>
-    <h1>User Dashboard</h1>
-    <img src="/public/images/mumei.jpg" alt="">
+  <style>
+  .dashboard-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    color: #6c757d;
+    margin: 0.5rem 0 0 0;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .stat-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.primary {
+    background: #f8f9fa;
+    color: #495057;
+    border: 2px solid #e9ecef;
+  }
+
+  .stat-icon.success {
+    background: #f8f9fa;
+    color: #28a745;
+    border: 2px solid #d4edda;
+  }
+  
+  .stat-icon.warning {
+    background: #f8f9fa;
+    color: #ffc107;
+    border: 2px solid #fff3cd;
+  }
+
+  .stat-icon.info {
+    background: #f8f9fa;
+    color: #17a2b8;
+    border: 2px solid #d1ecf1;
+  }
+
+  .stat-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: #2c3e50;
+  }
+
+  .stat-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+</style>
+
+<div class="dashboard-header">
+  <h1>แดชบอร์ด</h1>
+  <p>ภาพรวมข้อมูลอุปกรณ์และสถานะการยืมของคุณ</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon primary">
+        <i class="bi bi-boxes"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= totalEquipments || 0 %></h3>
+        <p>อุปกรณ์ทั้งหมดในคณะ</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon success">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= availableEquipments || 0 %></h3>
+        <p>อุปกรณ์ที่ยืมได้</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon warning">
+        <i class="bi bi-exclamation-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= unavailableEquipments || 0 %></h3>
+        <p>อุปกรณ์ที่ไม่ว่าง</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon info">
+        <i class="bi bi-person-fill"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= myBorrowedCount || 0 %></h3>
+        <p>ที่คุณกำลังยืมอยู่</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 </body>
 </html>

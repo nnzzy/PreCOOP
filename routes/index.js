@@ -22,8 +22,20 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
 // สมัครสมาชิก (POST)
 router.post('/register', async (req, res) => {
   try {
-    const { fname, lname, email, password } = req.body;
+    const { fname, lname, email, password, confirm_password } = req.body; // ✅ เพิ่ม confirm_password
 
+    // ตรวจสอบว่ารหัสผ่านทั้งสองช่องตรงกันไหม
+    if (password !== confirm_password) {
+      return res.render('register', {
+        alert: {
+          type: 'error',
+          title: 'สมัครสมาชิกไม่สำเร็จ',
+          message: 'รหัสผ่านทั้งสองช่องไม่ตรงกัน กรุณากรอกใหม่อีกครั้ง'
+        }
+      });
+    }
+
+    // ตรวจสอบอีเมลซ้ำ
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.render('register', {
@@ -35,8 +47,10 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // เข้ารหัสรหัสผ่าน
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // สร้างผู้ใช้ใหม่
     const newUser = new User({
       fname,
       lname,
@@ -47,6 +61,7 @@ router.post('/register', async (req, res) => {
 
     await newUser.save();
 
+    // สมัครสำเร็จ
     res.render('register', {
       alert: {
         type: 'success',

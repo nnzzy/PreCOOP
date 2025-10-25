@@ -5,7 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-<body>
-    <h1>Admin Dashboard</h1>
+<style>
+  .dashboard-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    color: #6c757d;
+    margin: 0.5rem 0 0 0;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .stat-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.warning {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .stat-icon.success {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .stat-icon.info {
+    background: #cfe2ff;
+    color: #084298;
+  }
+
+  .stat-icon.secondary {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+
+  .stat-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: #2c3e50;
+  }
+
+  .stat-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+</style>
+
+<div class="dashboard-header">
+  <h1><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</h1>
+  <p>ภาพรวมระบบยืมคืนอุปกรณ์</p>
+</div>
+
+<!-- สถิติ -->
+<% 
+  let waitCount = 0;
+  let borrowedCount = 0;
+  let pendingReturnCount = 0;
+  let returnedCount = 0;
+  
+  if (borrows && borrows.length > 0) {
+    borrows.forEach(b => {
+      if (b.status === 'waitForRent') waitCount++;
+      else if (b.status === 'Borrowed') borrowedCount++;
+      else if (b.status === 'PendingReturn') pendingReturnCount++;
+      else if (b.status === 'Returned') returnedCount++;
+    });
+  }
+%>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon warning">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= waitCount %></h3>
+        <p>รออนุมัติการยืม</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon success">
+        <i class="bi bi-box-seam"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= borrowedCount %></h3>
+        <p>กำลังยืม</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon info">
+        <i class="bi bi-arrow-repeat"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= pendingReturnCount %></h3>
+        <p>รออนุมัติการคืน</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-inner">
+      <div class="stat-icon secondary">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3><%= returnedCount %></h3>
+        <p>คืนแล้ว</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 </body>
 </html>

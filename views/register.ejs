@@ -18,6 +18,9 @@
 <body class="bg-light">
 
     <div class="container mt-5">
+        <a href="/" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>กลับ
+        </a>
         <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
@@ -45,10 +48,15 @@
                     <input type="password" name="password" placeholder="********" class="form-control" required>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">ยืนยันรหัสผ่าน</label>
+                    <input type="password" name="confirm_password" placeholder="********" class="form-control" required>
+                </div>
+
                 <button type="submit" class="btn btn-primary w-100">สมัครสมาชิก</button>
                 </form>
 
-                 <div class="mt-3 text-center">
+                <div class="mt-3 text-center">
                         <a href="/login">มีบัญชีอยู่แล้ว? เข้าสู่ระบบ</a>
                 </div>
             </div>
@@ -56,6 +64,23 @@
         </div>
         </div>
     </div>
+
+    <script>
+document.querySelector("form").addEventListener("submit", function (event) {
+    const password = document.querySelector('input[name="password"]').value;
+    const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+
+    if (password !== confirmPassword) {
+        event.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'รหัสผ่านไม่ตรงกัน',
+            text: 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง',
+            confirmButtonText: 'ตกลง'
+        });
+    }
+});
+</script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <% if (typeof alert !== 'undefined' && alert) { %>

@@ -66,10 +66,11 @@
         .swal2-popup {
             font-family: 'Kanit', sans-serif !important;
         }
+
     </style>
 </head>
 <body>
-
+    <!-- เช็คว่ามีค่า session user มั้ย ถ้ามีก็ให้แสดง navbar ตาม role -->
     <% if (locals.user) { %>
         <% if (locals.user.role === 'admin') { %>
             <%- include('navAdmin') %>

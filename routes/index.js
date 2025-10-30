@@ -14,6 +14,7 @@ router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('register' , { layout: false });
 });
 
+// แสดงหน้า login
 router.get('/login', redirectIfAuthenticated, (req, res) => {
   res.render('login' , { layout: false });
 });
@@ -22,7 +23,7 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
 // สมัครสมาชิก (POST)
 router.post('/register', async (req, res) => {
   try {
-    const { fname, lname, email, password, confirm_password } = req.body; // ✅ เพิ่ม confirm_password
+    const { fname, lname, email, password, confirm_password } = req.body;
 
     // ตรวจสอบว่ารหัสผ่านทั้งสองช่องตรงกันไหม
     if (password !== confirm_password) {
@@ -34,7 +35,6 @@ router.post('/register', async (req, res) => {
         }
       });
     }
-
     // ตรวจสอบอีเมลซ้ำ
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -67,7 +67,8 @@ router.post('/register', async (req, res) => {
         type: 'success',
         title: 'สมัครสมาชิกสำเร็จ!',
         message: 'คุณสามารถเข้าสู่ระบบได้แล้ว'
-      }
+      },
+      layout : false
     });
 
   } catch (err) {
@@ -77,7 +78,8 @@ router.post('/register', async (req, res) => {
         type: 'error',
         title: 'เกิดข้อผิดพลาด',
         message: 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง'
-      }
+      },
+      layout : false
     });
   }
 });

@@ -145,9 +145,6 @@ router.get('/equipmentAdmin/add', isAdmin, async (req, res) => {
 // เพิ่มอุปกรณ์ใหม่
 router.post('/equipmentAdmin/add', isAdmin, upload.single('image'), async (req, res) => {
   try {
-    console.log('Body:', req.body); // Debug
-    console.log('File:', req.file); // Debug
-
     const { name, category_id, description, status, location } = req.body;
 
     // ตรวจสอบข้อมูลที่จำเป็น
@@ -640,14 +637,15 @@ router.get('/adminManageBorrow', isAdmin, async (req, res) => {
   }
 });
 
-// API: อนุมัติการยืม — เปลี่ยนแค่ borrow.status -> 'Borrowed'
+// อนุมัติการยืม
 router.post('/adminManageBorrow/approve/:id', isAdmin, async (req, res) => {
   try {
     const borrowId = req.params.id;
 
     // ป้องกันการอนุมัติซ้ำ — อัปเดตเฉพาะถ้ายังเป็น waitForRent
     const updated = await Borrow.findOneAndUpdate(
-      { _id: borrowId, status: 'waitForRent' },
+      { _id: borrowId, 
+        status: 'waitForRent' },
       { $set: { status: 'Borrowed' } },
       { new: true }
     ).populate('user_id', 'fname lname').populate('equipment_id', 'name');
@@ -692,7 +690,7 @@ router.get('/confirmReturn', isAdmin, async (req, res) => {
   }
 });
 
-// API: ยืนยันการคืนอุปกรณ์
+//ยืนยันการคืนอุปกรณ์
 router.post('/confirmReturn/approve/:id', isAdmin, async (req, res) => {
   try {
     const borrowId = req.params.id;
@@ -796,13 +794,11 @@ router.get('/listuser', isAdmin, async (req, res) => {
   }
 });
 
-// แก้ไขข้อมูลผู้ใช้ (API สำหรับ Modal)
+// แก้ไขข้อมูลผู้ใช้ 
 router.post('/listuser/edit/:id', isAdmin, async (req, res) => {
   try {
     const { fname, lname, email, userRole } = req.body;
     const userId = req.params.id;
-
-    console.log('Received data:', req.body); // ✅ Debug
 
     // ดึงข้อมูลผู้ใช้เดิมมาก่อน
     const existingUserData = await User.findById(userId);
@@ -813,7 +809,7 @@ router.post('/listuser/edit/:id', isAdmin, async (req, res) => {
       });
     }
 
-    // ✅ เตรียมข้อมูลสำหรับอัปเดต (ใช้ค่าเดิมถ้าไม่ได้ส่งมา)
+    // เตรียมข้อมูลสำหรับอัปเดต (ใช้ค่าเดิมถ้าไม่ได้ส่งมา)
     const updateData = {
       fname: fname ? fname.trim() : existingUserData.fname,
       lname: lname ? lname.trim() : existingUserData.lname,

@@ -223,7 +223,7 @@ router.get('/userSetting', isUser, async (req, res) => {
   }
 });
 
-// อัปเดตข้อมูลส่วนตัว - แก้เป็น JSON response
+// อัปเดตข้อมูลส่วนตัว
 router.post('/userSetting', isUser, async (req, res) => {
   try {
     const { fname, lname, email } = req.body;
@@ -271,7 +271,7 @@ router.post('/userSetting', isUser, async (req, res) => {
   }
 });
 
-// เปลี่ยนรหัสผ่าน - แก้เป็น JSON response
+// เปลี่ยนรหัสผ่าน
 router.post('/userSetting/changePassword', isUser, async (req, res) => {
   try {
     const { currentPassword, newPassword, confirmPassword } = req.body;

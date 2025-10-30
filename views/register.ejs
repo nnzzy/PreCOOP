@@ -11,6 +11,7 @@
             font-family: 'Kanit', sans-serif;
         }
     </style>
+
 </head>
 
 
@@ -66,7 +67,7 @@
     </div>
 
     <script>
-document.querySelector("form").addEventListener("submit", function (event) {
+    document.querySelector("form").addEventListener("submit", function (event) {
     const password = document.querySelector('input[name="password"]').value;
     const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
 
@@ -77,10 +78,10 @@ document.querySelector("form").addEventListener("submit", function (event) {
             title: 'รหัสผ่านไม่ตรงกัน',
             text: 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง',
             confirmButtonText: 'ตกลง'
-        });
-    }
-});
-</script>
+            });
+        }
+    });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <% if (typeof alert !== 'undefined' && alert) { %>
@@ -89,7 +90,7 @@ document.querySelector("form").addEventListener("submit", function (event) {
             icon: '<%= alert.type %>', 
             title: '<%= alert.title %>',
             text: '<%= alert.message %>',
-            confirmButtonText: 'ตกลง'
+            confirmButtonText: 'ตกลง',
         });
         </script>
     <% } %>
